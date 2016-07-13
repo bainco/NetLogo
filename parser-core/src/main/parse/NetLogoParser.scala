@@ -35,14 +35,15 @@ trait NetLogoParser {
     val usedNames = globallyUsedNames ++ procedure.args.map(_ -> SymbolType.LocalVariable)
     // on LetNamer vs. Namer vs. LetScoper, see comments in LetScoper
     val namedTokens = {
-      val letNamedTokens = LetNamer(rawTokens.iterator)
+      val letNamedTokens = TransformableTokenStream(rawTokens.iterator, LetNamer)
       val namer =
         new Namer(structureResults.program,
           oldProcedures ++ structureResults.procedures,
-          extensionManager)
-      val namedTokens = namer.process(letNamedTokens, procedure)
-      val letScoper = new LetScoper(usedNames)
-      letScoper(namedTokens.buffered)
+          procedure, extensionManager)
+      namer.validateProcedure()
+      val namedTokens = TransformableTokenStream(letNamedTokens, namer)
+      val letScoper = new LetScoper(usedNames, namedTokens)
+      TransformableTokenStream(namedTokens, letScoper)
     }
     ExpressionParser(procedure, namedTokens)
   }

@@ -133,6 +133,28 @@ class FrontEndTests extends FunSuite {
   test("error-message used outside of carefully") {
     runFailure("let foo error-message", "error-message cannot be used outside of CAREFULLY.", 8, 21)
   }
+  test("lambda parse") {
+    runTest("__ignore create-reporter [x] [x]", "")
+  }
+  test("lambda argument name is a literal") {
+    runFailure("__ignore create-reporter [2] [ 2 ]", "closing bracket expected", 26, 27)
+  }
+  test("lambda argument shadows primitive name") {
+    runFailure("__ignore create-reporter [turtles] [2]", "There is already a primitive reporter called TURTLES", 26, 32)
+  }
+  test("lambda argument shadows local variable") {
+    runFailure("let baz 7 __ignore create-reporter [baz] [3]", "There is already a local variable here called BAZ", 36, 39)
+  }
+  test("lambda argument shadows procedure variable") {
+    /*
+    to-report foo [bar]
+    report create-reporter [baz] [
+    create-reporter [baz] [3]
+    ]
+    end
+    */
+    pending
+  }
   test("DoParseMap") {
     runTest("__ignore map [round ?] [1.2 1.7 3.2]",
       "_ignore()[_map()[_reportertask(1)[_round()[_taskvariable(1)[]]], _const([1.2, 1.7, 3.2])[]]]")

@@ -90,79 +90,48 @@ import org.nlogo.core,
 
 import scala.annotation.tailrec
 
-class LetScoper(usedNames: Map[String, SymbolType]) {
+class LetScoper(usedNames: Map[String, SymbolType], i: BufferedIterator[Token])
+  extends TokenTransformer[(List[List[Let]], BufferedIterator[Token])] {
 
-  // Environment encapsulates state, namely, what variables are currently in scope.
-  // Each List[Let] is a scope; we have a List[List[Let]] because scopes nest.
-  // We push() to start a new scope when we see an open square bracket, then pop()
-  // when we reach the corresponding close bracket.
-  object Environment {
-    private var lets = List[List[Let]]()
-    def push(): Unit =
-      lets +:= Nil
-    def add(name: String): Let = {
-      val let = Let(name)
-      lets = (let +: lets.head) +: lets.tail
-      let
-    }
-    def get(name: String): Option[Let] =
-      lets.flatten.find(_.name == name)
-    def pop(): Unit =
-      lets = lets match {
-        case Nil => Nil
-        case hd::tail => tail
-      }
-    def used: Map[String, SymbolType] =
-      lets.flatten
-        .map(_.name -> SymbolType.LocalVariable)
-        .toMap
-  }
+  type State = (List[List[Let]], BufferedIterator[Token])
 
   // begin with an initial empty scope, for the top level of the procedure
-  Environment.push()
-
-  // We require a BufferedIterator so we can peek ahead one token
-  // the tailrec annotation prevents StackOverflowErrors, when compiling the "Continental Divide" Model
-  @tailrec final def apply(tokens: BufferedIterator[Token], accTokens: Seq[Token]=Seq()): Iterator[Token] =
-    if (tokens.hasNext)
-      apply(tokens, accTokens :+ next(tokens))
-    else
-      accTokens.iterator
+  override def initialState: State = (List[List[Let]](List[Let]()), i)
 
   // we look for this in the input:
   //   Command(_let) Reporter(_letname) ...
   //     make Let from _letname, stuff into _let
   //   Reporter(_letvariable)
   //     stuff Let into _letvariable
-
-  def next(iter: BufferedIterator[Token]): Token =
-    iter.next() match {
+  override def transform(token: Token, state: State): (Token, State) = {
+    val env = state._1
+    token match {
       case t @ Token(_, TokenType.OpenBracket, _) =>
-        Environment.push()
-        t
+        (t, (List() +: env, state._2))
       case t @ Token(_, TokenType.CloseBracket, _) =>
-        Environment.pop()
-        t
+        val newEnv = env match {
+          case Nil => Nil
+          case hd::tail => tail
+        }
+        (t, (newEnv, state._2))
       case t @ Token(_, TokenType.Command, l: core.prim._let) =>
-        val nameToken = iter.head
+        val nameToken = state._2.head
         val name = nameToken.text.toUpperCase
-        for (tpe <- (usedNames ++ Environment.used).get(name))
+        val envUsed = env.flatten.map(_.name -> SymbolType.LocalVariable).toMap
+        for (tpe <- (usedNames ++ envUsed).get(name))
           exception("There is already a " + SymbolType.typeName(tpe) + " called " + name, nameToken)
-        cAssert(nameToken.tpe == TokenType.Reporter,
-           "Expected variable name here", nameToken)
-        cAssert(!name.startsWith("?"),
-          "Names beginning with ? are reserved for use as task inputs", nameToken)
-        val let = Environment.add(name)
-        t.refine(l.copy(let = let))
+        cAssert(nameToken.tpe == TokenType.Reporter, "Expected variable name here", nameToken)
+        cAssert(! name.startsWith("?"), "Names beginning with ? are reserved for use as task inputs", nameToken)
+        val newLet = Let(name)
+        (t.refine(l.copy(let = newLet)), ((env.head :+ newLet) +: env.tail, state._2))
       case t @ Token(_, TokenType.Reporter, l: core.prim._unknownidentifier) =>
-        Environment.get(t.text.toUpperCase) match {
-          case Some(let) => t.refine(core.prim._letvariable(let))
+        env.flatten.find(_.name == t.text.toUpperCase) match {
+          case Some(let) => (t.refine(core.prim._letvariable(let)), state)
           // if no let is defined, we infer a symbol here.
           // ExpressionParser verifies that that is correct
-          case None      => t.refine(core.prim._symbol())
+          case None      => (t.refine(core.prim._symbol()), state)
         }
-      case t =>
-        t
+      case t => (t, state)
     }
-
+  }
 }

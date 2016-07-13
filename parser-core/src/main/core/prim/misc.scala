@@ -103,6 +103,13 @@ case class _count() extends Reporter {
       right = List(Syntax.AgentsetType),
       ret = Syntax.NumberType)
 }
+case class _createreporter() extends Reporter {
+  override def syntax = {
+    Syntax.reporterSyntax(
+      right = List(Syntax.CodeBlockType, Syntax.ReporterTaskType),
+      ret = Syntax.ReporterTaskType)
+  }
+}
 case class _createorderedturtles(breedName: String) extends Command {
   def this() = this("")
   override def syntax =
