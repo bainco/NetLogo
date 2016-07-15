@@ -2,6 +2,8 @@
 
 package org.nlogo.parse
 
+import org.nlogo.core.{ Fail, Token }, Fail.exception
+
 import scala.collection.immutable.HashMap
 
 sealed trait SymbolType
@@ -81,4 +83,8 @@ object SymbolType {
   }
 
   def emptySymbolTable = new HashMap[String, SymbolType]()
+
+  def alreadyDefinedException(symType: SymbolType, t: Token): Nothing = {
+    exception("There is already a " + SymbolType.typeName(symType) + " called " + t.text.toUpperCase, t)
+  }
 }

@@ -67,10 +67,10 @@ class FrontEndTests extends FunSuite {
     doFailure(input, message, start, end, preamble)
   }
   def doFailure(input: String, message: String, start: Int, end: Int, preamble: String = PREAMBLE) {
-    val e = intercept[CompilerException] { compile(input) }
+    val e = intercept[CompilerException] { compile(input, preamble = preamble) }
     assertResult(message)(e.getMessage)
-    assertResult(start)(e.start - PREAMBLE.length)
-    assertResult(end)(e.end - PREAMBLE.length)
+    assertResult(start)(e.start - preamble.length)
+    assertResult(end)(e.end - preamble.length)
   }
 
   /// now, the actual tests
@@ -134,26 +134,22 @@ class FrontEndTests extends FunSuite {
     runFailure("let foo error-message", "error-message cannot be used outside of CAREFULLY.", 8, 21)
   }
   test("lambda parse") {
-    runTest("__ignore create-reporter [x] [x]", "")
+    runTest("__ignore create-reporter [x] [x]", "_ignore()[_createreporter()[_constcodeblock(List(Token(x,Reporter,_symbol())))[], _reportertask(0)[_lambdavariable(X)[]]]]")
   }
   test("lambda argument name is a literal") {
-    runFailure("__ignore create-reporter [2] [ 2 ]", "closing bracket expected", 26, 27)
+    runFailure("__ignore create-reporter [2] [ 2 ]", "Expected a variable name here", 26, 27)
   }
   test("lambda argument shadows primitive name") {
-    runFailure("__ignore create-reporter [turtles] [2]", "There is already a primitive reporter called TURTLES", 26, 32)
+    runFailure("__ignore create-reporter [turtles] [2]", "There is already a primitive reporter called TURTLES", 26, 33)
+  }
+  test("lambda argument duplicate name") {
+    runFailure("__ignore create-reporter [bar bar] [2]", "There is already a local variable here called BAR", 30, 33)
   }
   test("lambda argument shadows local variable") {
     runFailure("let baz 7 __ignore create-reporter [baz] [3]", "There is already a local variable here called BAZ", 36, 39)
   }
   test("lambda argument shadows procedure variable") {
-    /*
-    to-report foo [bar]
-    report create-reporter [baz] [
-    create-reporter [baz] [3]
-    ]
-    end
-    */
-    pending
+    runFailure("__ignore create-reporter [bar] [2]", "There is already a local variable here called BAR", 26, 29, "to foo [bar] ")
   }
   test("DoParseMap") {
     runTest("__ignore map [round ?] [1.2 1.7 3.2]",

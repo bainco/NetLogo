@@ -197,6 +197,10 @@ case class _jump() extends Command {
       right = List(Syntax.NumberType),
       agentClassString = "-T--")
 }
+case class _lambdavariable(name: String) extends Reporter {
+  override def syntax =
+    Syntax.reporterSyntax(ret = Syntax.WildcardType)
+}
 case class _lessthan() extends Reporter with Pure {
   override def syntax =
     Syntax.reporterSyntax(

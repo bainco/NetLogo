@@ -43,7 +43,14 @@ trait NetLogoParser {
       namer.validateProcedure()
       val namedTokens = TransformableTokenStream(letNamedTokens, namer)
       val letScoper = new LetScoper(usedNames, namedTokens)
-      TransformableTokenStream(namedTokens, letScoper)
+      // we map unknown idents to symbols and ExpressionParser errors as appropriate
+      val letScopedStream = TransformableTokenStream(namedTokens, letScoper)
+      val lambdaScopedStream = TransformableTokenStream(letScopedStream, new LambdaScoper(usedNames))
+      lambdaScopedStream.map {
+        case t @ org.nlogo.core.Token(_, org.nlogo.core.TokenType.Reporter, l: org.nlogo.core.prim._unknownidentifier) =>
+          t.refine(org.nlogo.core.prim._symbol())
+        case t => t
+      }
     }
     ExpressionParser(procedure, namedTokens)
   }

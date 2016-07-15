@@ -127,9 +127,7 @@ class LetScoper(usedNames: Map[String, SymbolType], i: BufferedIterator[Token])
       case t @ Token(_, TokenType.Reporter, l: core.prim._unknownidentifier) =>
         env.flatten.find(_.name == t.text.toUpperCase) match {
           case Some(let) => (t.refine(core.prim._letvariable(let)), state)
-          // if no let is defined, we infer a symbol here.
-          // ExpressionParser verifies that that is correct
-          case None      => (t.refine(core.prim._symbol()), state)
+          case None      => (t, state)
         }
       case t => (t, state)
     }
