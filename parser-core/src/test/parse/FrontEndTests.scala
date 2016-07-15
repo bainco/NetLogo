@@ -139,11 +139,23 @@ class FrontEndTests extends FunSuite {
   test("lambda argument name is a literal") {
     runFailure("__ignore create-reporter [2] [ 2 ]", "Expected a variable name here", 26, 27)
   }
+  test("invalidLambda1") {
+    runFailure("__ignore create-reporter [", "No closing bracket for this open bracket.", 25, 26)
+  }
+  test("invalidLambda2") {
+    runFailure("__ignore create-reporter [] [", "No closing bracket for this open bracket.", 28, 29)
+  }
+  test("invalidLambda3") {
+    runFailure("__ignore create-reporter [] 2", "CREATE-REPORTER expected this input to be a reporter task, but got a number instead", 28, 29)
+  }
   test("lambda argument shadows primitive name") {
     runFailure("__ignore create-reporter [turtles] [2]", "There is already a primitive reporter called TURTLES", 26, 33)
   }
   test("lambda argument duplicate name") {
     runFailure("__ignore create-reporter [bar bar] [2]", "There is already a local variable here called BAR", 30, 33)
+  }
+  test("lambda argument duplicate nested name") {
+    runFailure("__ignore create-reporter [bar] [create-reporter [bar] [2]]", "There is already a local variable here called BAR", 49, 52)
   }
   test("lambda argument shadows local variable") {
     runFailure("let baz 7 __ignore create-reporter [baz] [3]", "There is already a local variable here called BAZ", 36, 39)

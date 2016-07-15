@@ -49,6 +49,7 @@ class TestAllSyntaxes extends FunSuite {
                      |_checksyntax string,string,OTPL,None,10,1,1
                      |_cos number,number,OTPL,None,10,1,1
                      |_count agentset,number,OTPL,None,10,1,1
+                     |_createreporter code block/reporter task,reporter task,OTPL,None,10,2,2
                      |_dateandtime ,string,OTPL,None,10,0,0
                      |_distance turtle or patch,number,-TP-,None,10,1,1
                      |_distancexy number/number,number,-TP-,None,10,2,2
