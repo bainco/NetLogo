@@ -134,7 +134,7 @@ class FrontEndTests extends FunSuite {
     runFailure("let foo error-message", "error-message cannot be used outside of CAREFULLY.", 8, 21)
   }
   test("lambda parse") {
-    runTest("__ignore create-reporter [x] [x]", "_ignore()[_createreporter()[_constcodeblock(List(Token(x,Reporter,_symbol())))[], _reportertask(0)[_lambdavariable(X)[]]]]")
+    runTest("run create-reporter [y] [x + x]", "_run()[_createreporter()[_constcodeblock(List(Token(x,Reporter,_symbol())))[], _reportertask(0)[_lambdavariable(X)[]]]]")
   }
   test("lambda argument name is a literal") {
     runFailure("__ignore create-reporter [2] [ 2 ]", "Expected a variable name here", 26, 27)

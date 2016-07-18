@@ -38,7 +38,7 @@ class LambdaScoper(usedNames: Map[String, SymbolType])
       case (t, a: Arguments) if nestingLambdasContain(t.text.toUpperCase) =>
         SymbolType.alreadyDefinedException(SymbolType.LocalVariable, t)
         // this condition assumes that LetScoper has processed the token stream before LambdaScoper
-      case (t@Token(tokenText, TokenType.Reporter, _letvariable(_)), b: Arguments) =>
+      case (t @ Token(tokenText, TokenType.Reporter, _letvariable(_)), b: Arguments) =>
         SymbolType.alreadyDefinedException(SymbolType.LocalVariable, t)
       case (Token(_, TokenType.Literal, _), _: Arguments)      =>
         exception("Expected a variable name here", token)
@@ -47,7 +47,7 @@ class LambdaScoper(usedNames: Map[String, SymbolType])
       case (Token(_, TokenType.OpenBracket, _),     EnterArgs) => update(token, Arguments(Seq()))
       case (Token(_, TokenType.OpenBracket, _),  e: EnterBody) => update(token, Body(e.args))
       case (Token(_, TokenType.CloseBracket, _), a: Arguments) => update(token, EnterBody(a.args))
-      case (t@Token(tokenText, TokenType.Reporter, _unknownidentifier()), b: Body)
+      case (t @ Token(tokenText, TokenType.Reporter, _unknownidentifier()), b: Body)
       if b.args.contains(tokenText.toUpperCase) =>
         update(t.refine(_lambdavariable(t.text.toUpperCase)), NoLambda)
       case (t @ Token(_, TokenType.CloseBracket, _), b: Body) =>
