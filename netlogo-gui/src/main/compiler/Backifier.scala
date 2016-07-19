@@ -121,7 +121,7 @@ class Backifier(program: Program,
         alteredName
   }
 
-  private def fallback[T1 <: core.Instruction, T2 <: nvm.Instruction](i: T1): T2 =
+  private def fallback[T1 <: core.Instruction, T2 <: nvm.Instruction](i: T1): T2 = {
     BreedIdentifierHandler.process(i.token.copy(value = i.token.text.toUpperCase), program) match {
       case None =>
         try {
@@ -142,6 +142,7 @@ class Backifier(program: Program,
         Instantiator.newInstance[T2](
           Class.forName(primName), breedName)
     }
+  }
 
   def apply(c: core.Command): nvm.Command = {
     val result: nvm.Command = c match {
@@ -188,6 +189,9 @@ class Backifier(program: Program,
       case core.prim._commandtask(argcount) =>
         new nvmprim._commandtask(argcount)  // LambdaLifter will fill in
 
+      case core.prim._createreporter(argNames, _) =>
+        new nvmprim._createreporter(argNames)
+
       case core.prim._reportertask(argcount, _) =>
         new nvmprim._reportertask()
 
@@ -205,6 +209,8 @@ class Backifier(program: Program,
         new nvmprim._procedurevariable(vn, name)
       case core.prim._taskvariable(vn, _) =>
         new nvmprim._taskvariable(vn)
+      case core.prim._lambdavariable(name) =>
+        new nvmprim._lambdavariable(name)
 
       case core.prim._observervariable(vn, _) =>
         new nvmprim._observervariable(vn)

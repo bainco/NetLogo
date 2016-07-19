@@ -4,7 +4,7 @@ package org.nlogo.parse
 
 import org.nlogo.core.{ Fail, Token, TokenType }, Fail.exception
 
-import org.nlogo.core.prim.{ _createreporter, _letvariable, _lambdavariable, _unknownidentifier }
+import org.nlogo.core.prim.{ _createreporter, _letvariable, _lambdavariable, _symbol, _unknownidentifier }
 
 object LambdaScoper {
   sealed trait State
@@ -31,13 +31,14 @@ class LambdaScoper(usedNames: Map[String, SymbolType])
       case _ => false
     }
     (token, states.head) match {
+      case (t @ Token(_, TokenType.Comment, _), s) => update(token, state)
       case (t, _: Arguments) if usedNames.isDefinedAt(t.text.toUpperCase) =>
         SymbolType.alreadyDefinedException(usedNames(t.text.toUpperCase), t)
       case (t, a: Arguments) if a.args.contains(t.text.toUpperCase) =>
         SymbolType.alreadyDefinedException(SymbolType.LocalVariable, t)
       case (t, a: Arguments) if nestingLambdasContain(t.text.toUpperCase) =>
         SymbolType.alreadyDefinedException(SymbolType.LocalVariable, t)
-        // this condition assumes that LetScoper has processed the token stream before LambdaScoper
+      // this condition assumes that LetScoper has processed the token stream before LambdaScoper
       case (t @ Token(tokenText, TokenType.Reporter, _letvariable(_)), b: Arguments) =>
         SymbolType.alreadyDefinedException(SymbolType.LocalVariable, t)
       case (Token(_, TokenType.Literal, _), _: Arguments)      =>
@@ -48,13 +49,13 @@ class LambdaScoper(usedNames: Map[String, SymbolType])
       case (Token(_, TokenType.OpenBracket, _),  e: EnterBody) => update(token, Body(e.args))
       case (Token(_, TokenType.CloseBracket, _), a: Arguments) => update(token, EnterBody(a.args))
       case (t @ Token(tokenText, TokenType.Reporter, _unknownidentifier()), b: Body)
-      if b.args.contains(tokenText.toUpperCase) =>
-        update(t.refine(_lambdavariable(t.text.toUpperCase)), NoLambda)
+        if b.args.contains(tokenText.toUpperCase) =>
+        update(t.refine(_lambdavariable(t.text.toUpperCase)), b)
       case (t @ Token(_, TokenType.CloseBracket, _), b: Body) =>
         if (states.length == 1) update(token, NoLambda) else pop(t)
       case (t, EnterArgs)    => if (states.length == 1) update(t, NoLambda) else pop(t)
       case (t, _: EnterBody) => if (states.length == 1) update(t, NoLambda) else pop(t)
-      case (t, a: Arguments) => update(t, Arguments(a.args :+ t.text.toUpperCase))
+      case (t, a: Arguments) => update(t.refine(_symbol()), Arguments(a.args :+ t.text.toUpperCase))
       case _                 => update(token, state)
     }
   }

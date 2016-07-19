@@ -15,6 +15,7 @@ object TokenDSL {
   def letvar(str: String): Token = Token(str, Reporter, org.nlogo.core.prim._letvariable(Let()))(0, 0, "test")
   def lit(v: Int): Token       = Token(v.toString, Literal, Double.box(v.toDouble))(0, 0, "test")
   def ex(str: String): Token   = Token(str, Extension, str)(0, 0, "test")
+  def `;`(comment: String): Token = Token(";" + comment, Comment, comment)(0, 0, "test")
   def eof: Token               = Token("eof", Eof, null)(0, 0, "test")
 
   def tokenIterator(ts: Token*): Iterator[Token] = ts.iterator ++ Iterator(eof)

@@ -38,8 +38,11 @@ trait FrontEndMain extends NetLogoParser {
     val verifier = new TaskVariableVerifier
     topLevelDefs.foreach(verifier.visitProcedureDefinition)
 
+    val dereferencer = new LambdaVariableDereferencer
+    val dereferencedDefs = topLevelDefs.map(dereferencer.visitProcedureDefinition)
+
     val cfVerifier = new ControlFlowVerifier
-    val verifiedDefs = topLevelDefs.map(cfVerifier.visitProcedureDefinition)
+    val verifiedDefs = dereferencedDefs.map(cfVerifier.visitProcedureDefinition)
 
     (verifiedDefs, structureResults)
   }

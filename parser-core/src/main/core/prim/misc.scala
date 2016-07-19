@@ -103,11 +103,21 @@ case class _count() extends Reporter {
       right = List(Syntax.AgentsetType),
       ret = Syntax.NumberType)
 }
-case class _createreporter() extends Reporter {
+case class _createreporter(argumentNames: Seq[String], synthetic: Boolean) extends Reporter {
+  def this() = this(Seq(), false)
+  def this(arguments: Seq[String]) = this(arguments, false)
   override def syntax = {
     Syntax.reporterSyntax(
       right = List(Syntax.CodeBlockType, Syntax.ReporterTaskType),
       ret = Syntax.ReporterTaskType)
+  }
+
+  override def toString =
+    "_createreporter" + argumentNames.mkString("(", ", ", ")")
+
+  def copy(argumentNames: Seq[String] = argumentNames): _createreporter = {
+    val cr = new _createreporter(argumentNames, synthetic)
+    copyInstruction(cr)
   }
 }
 case class _createorderedturtles(breedName: String) extends Command {

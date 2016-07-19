@@ -649,6 +649,7 @@ object ExpressionParser {
           check(remaining.tail, stack)
         }
       }
+
       check(block.tokens.tail.dropRight(2)) // Drops two because of the EOF
       val tmp = new core.prim._constcodeblock(block.tokens.tail.dropRight(2))
       new core.ReporterApp(tmp,tokens.head.start,block.tokens.last.end,tokens.head.filename)
