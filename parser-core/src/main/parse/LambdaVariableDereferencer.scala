@@ -23,10 +23,10 @@ class LambdaVariableDereferencer extends AstTransformer {
           }
           case o => Seq()
         }
-        val body = app.args(1) match {
+        val body = super.visitExpression(app.args(1) match {
           case a: ReporterApp if a.reporter.isInstanceOf[_reportertask] => a.args(0)
           case _ => app.args(1)
-        }
+        })
         val newRep = cr.copy(argumentNames = names)
         app.copy(reporter = newRep, args = app.args.updated(1, body))
       case _ => super.visitReporterApp(app)

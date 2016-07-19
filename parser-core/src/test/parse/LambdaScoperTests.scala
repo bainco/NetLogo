@@ -96,6 +96,11 @@ class LambdaScoperTests extends FunSuite {
     assert(s.head == Body(Seq()))
   }
 
+  test("test nested lambda variable substitution") {
+    val (t, s) = transformAll(unid("BAZ"), Seq(Body(Seq()), Body(Seq("BAZ"))))
+    assert(t.value == _lambdavariable("BAZ"))
+  }
+
   test("test nested lambda errors with duplicate variable names") {
     val ex = intercept[CompilerException] { transformAll(unid("BAR"), Seq(Arguments(Seq()), Body(Seq("BAR")))) }
     assert(ex.getMessage.contains("There is already a local variable here called BAR"))

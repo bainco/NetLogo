@@ -49,7 +49,7 @@ class LambdaScoper(usedNames: Map[String, SymbolType])
       case (Token(_, TokenType.OpenBracket, _),  e: EnterBody) => update(token, Body(e.args))
       case (Token(_, TokenType.CloseBracket, _), a: Arguments) => update(token, EnterBody(a.args))
       case (t @ Token(tokenText, TokenType.Reporter, _unknownidentifier()), b: Body)
-        if b.args.contains(tokenText.toUpperCase) =>
+        if b.args.contains(tokenText.toUpperCase) || nestingLambdasContain(tokenText.toUpperCase) =>
         update(t.refine(_lambdavariable(t.text.toUpperCase)), b)
       case (t @ Token(_, TokenType.CloseBracket, _), b: Body) =>
         if (states.length == 1) update(token, NoLambda) else pop(t)

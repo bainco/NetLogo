@@ -392,7 +392,7 @@ object ExpressionParser {
               sys.error("unexpected token type: " + token.tpe)
           }
           // the !variadic check is to prevent "map (f a) ..." from being misparsed.
-          if (wantReporterTask && !variadic && (wantAnyTask || syntax.totalDefault > 0))
+          if (wantReporterTask && !variadic && ! wantsSymbolicValue(rApp.reporter) && (wantAnyTask || syntax.totalDefault > 0))
             expandConciseReporterTask(rApp, rApp.reporter)
           // the normal case
           else {
@@ -695,6 +695,11 @@ object ExpressionParser {
             .headOption
             .exists(t => t.tpe == TokenType.Command || t.tpe == TokenType.CloseBracket)
   }
+
+  private def wantsSymbolicValue(reporter: core.Reporter) =
+    Syntax.compatible(reporter.syntax.left, Syntax.CodeBlockType | Syntax.SymbolType) ||
+      reporter.syntax.right.exists(arg => Syntax.compatible(arg, Syntax.CodeBlockType | Syntax.SymbolType))
+
 
   // these are most of the compiler error messages. the ones actually in the code are those
   // that require some substitution, which are pretty much only type errors currently.

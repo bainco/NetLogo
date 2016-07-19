@@ -135,7 +135,15 @@ class FrontEndTests extends FunSuite {
   }
   test("lambda parse") {
     runTest("__ignore create-reporter [x] [x + x]",
-      "_ignore()[_createreporter(X)[_constcodeblock(List(Token(x,Reporter,_symbol())))[], _plus()[_lambdavariable(X)[], _lambdavariable(X)[]]]]")
+      "_ignore()[_createreporter(X)[`[ x ]`[], _plus()[_lambdavariable(X)[], _lambdavariable(X)[]]]]")
+  }
+  test("nested lambda parse") {
+    runTest("__ignore (create-reporter [x] [ create-reporter [y] [ x / y ] ])",
+      "_ignore()[_createreporter(X)[`[ x ]`[], _createreporter(Y)[`[ y ]`[], _div()[_lambdavariable(X)[], _lambdavariable(Y)[]]]]]")
+  }
+  test("lambda parse with map") {
+    runTest("__ignore map create-reporter [x] [x] [1 2 3]",
+      "_ignore()[_map()[_createreporter(X)[`[ x ]`[], _lambdavariable(X)[]], _const([1, 2, 3])[]]]")
   }
   test("lambda argument name is a literal") {
     runFailure("__ignore create-reporter [2] [ 2 ]", "Expected a variable name here", 26, 27)

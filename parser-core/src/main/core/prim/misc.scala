@@ -96,6 +96,7 @@ case class _const(value: AnyRef) extends Reporter with Pure {
 case class _constcodeblock(value: Seq[Token]) extends Reporter with Pure {
   override def syntax =
     Syntax.reporterSyntax(ret = Syntax.CodeBlockType)
+  override def toString = value.map(_.text).mkString("`[ ", " ", " ]`")
 }
 case class _count() extends Reporter {
   override def syntax =

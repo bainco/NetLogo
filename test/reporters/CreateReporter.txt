@@ -1,2 +1,41 @@
 CreateReporter1
+  runresult create-reporter [] [1] => 1
+
+CreateReporter2
   runresult create-reporter [x] [x + x] 2 => 4
+
+Change-Closed-Variable
+  globals [ glob1 glob2 ]
+  O> let x 10 let addx create-reporter [y] [y + x] set glob1 (runresult addx 6) set x 100 set glob2 (runresult addx 6)
+  glob1 => 16
+  glob2 => 106
+
+Used-As-Function-Argument
+  globals [ glob1 ]
+  to-report call [fn] report (runresult fn 10) end
+  O> set glob1 call create-reporter [x] [x * x]
+  glob1 => 100
+
+NestedLambdas1
+  (runresult (runresult (create-reporter [x] [ create-reporter [y] [x / y] ]) 4) 2) => 2
+
+NestedLambdas2
+  (runresult (runresult (create-reporter [x] [ create-reporter [] [x] ]) 4)) => 4
+
+NestedLambdas3
+  (runresult (create-reporter [a b] [ a + (runresult create-reporter [y z] [ y + z ] 2 3) + b ]) 1 4) => 10
+
+NoErrorWhenToManyArgs
+  runresult create-reporter [x] [x + x] 2 3 4 => 4
+
+Map-Id
+  map create-reporter [x] [x] [1 2 3] => [1 2 3]
+
+Map-Id-Plus-5
+  map create-reporter [x] [x + 5] [1 2 3] => [6 7 8]
+
+Map-Two-Args
+  (map create-reporter [x y] [x + y] [1 2 3] [10 20 30]) => [11 22 33]
+
+Map-Three-Args
+  (map create-reporter [x y z] [x + y + z] [1 2 3] [10 20 30] [100 200 300]) => [111 222 333]
