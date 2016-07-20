@@ -55,7 +55,7 @@ class LambdaScoper(usedNames: Map[String, SymbolType])
         if (states.length == 1) update(token, NoLambda) else pop(t)
       case (t, EnterArgs)    => if (states.length == 1) update(t, NoLambda) else pop(t)
       case (t, _: EnterBody) => if (states.length == 1) update(t, NoLambda) else pop(t)
-      case (t, a: Arguments) => update(t.refine(_symbol()), Arguments(a.args :+ t.text.toUpperCase))
+      case (t, a: Arguments) => update(t, Arguments(a.args :+ t.text.toUpperCase))
       case _                 => update(token, state)
     }
   }
